@@ -9,193 +9,59 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.view.Gravity
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
-data class Question(
-    val text: String,
-    val options: List<String>,
-    val correct: Int,
-    val explanation: String
-)
+data class Question(val text:String,val options:List<String>,val correct:Int,val explanation:String)
 
-class MainActivity : AppCompatActivity() {
-    private val dark = Color.parseColor("#29265F")
-    private val primary = Color.parseColor("#4C4AA7")
-    private val accent = Color.parseColor("#D7A54A")
-    private val bg = Color.parseColor("#F6F6FB")
-    private val textColor = Color.parseColor("#252544")
-    private val muted = Color.parseColor("#74748C")
-    private val line = Color.parseColor("#D8D8EA")
-    private val prefsName = "fizika3_premium_stats"
+class MainActivity:AppCompatActivity(){
+    private val dark=Color.parseColor("#17345C")
+    private val primary=Color.parseColor("#365FA8")
+    private val accent=Color.parseColor("#D3A94B")
+    private val bg=Color.parseColor("#F4F7FC")
+    private val text=Color.parseColor("#24364F")
+    private val muted=Color.parseColor("#697B96")
+    private val line=Color.parseColor("#CFD9EA")
+    private val prefsName="fizika3_premium_stats"
+    private val handler=Handler(Looper.getMainLooper())
+    private var startTime=0L; private var elapsed=0L; private var running=false
+    private var questions:List<Question> = emptyList(); private var current=0; private var score=0; private var checked=false
+    private lateinit var progressText:TextView; private lateinit var scoreText:TextView; private lateinit var progressBar:ProgressBar
+    private lateinit var questionText:TextView; private lateinit var options:RadioGroup; private lateinit var explanation:TextView
+    private lateinit var checkButton:Button; private lateinit var nextButton:Button; private lateinit var timer:TextView
+    private val tick=object:Runnable{override fun run(){if(!running)return;elapsed=SystemClock.elapsedRealtime()-startTime;timer.text="Vreme ${format(elapsed)}";handler.postDelayed(this,1000)}}
 
-    private val handler = Handler(Looper.getMainLooper())
-    private var startTime = 0L
-    private var elapsed = 0L
-    private var running = false
-    private var questions: List<Question> = emptyList()
-    private var current = 0
-    private var score = 0
-    private var checked = false
+    override fun onCreate(s:Bundle?){super.onCreate(s);window.statusBarColor=dark;window.navigationBarColor=dark;showHome()}
+    private fun dp(v:Int)=(v*resources.displayMetrics.density).toInt()
+    private fun round(fill:Int,stroke:Int,r:Int,sw:Int)=GradientDrawable().apply{shape=GradientDrawable.RECTANGLE;setColor(fill);cornerRadius=dp(r).toFloat();if(sw>0)setStroke(dp(sw),stroke)}
+    private fun tv(s:String,sp:Float,c:Int)=TextView(this).apply{text=s;textSize=sp;setTextColor(c);setLineSpacing(0f,1.12f)}
+    private fun center(s:String,sp:Float,c:Int)=tv(s,sp,c).apply{gravity=Gravity.CENTER}
+    private fun button(label:String)=Button(this).apply{text=label;textSize=17f;isAllCaps=false;setTextColor(Color.WHITE);setTypeface(null,Typeface.BOLD);background=round(primary,accent,24,1);elevation=dp(4).toFloat()}
+    private fun card()=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(dp(16),dp(15),dp(16),dp(15));background=round(Color.WHITE,line,20,1);elevation=dp(2).toFloat()}
+    private fun gap(r:LinearLayout,h:Int){r.addView(Space(this),LinearLayout.LayoutParams(1,dp(h)))}
 
-    private lateinit var progressText: TextView
-    private lateinit var scoreText: TextView
-    private lateinit var progressBar: ProgressBar
-    private lateinit var questionText: TextView
-    private lateinit var options: RadioGroup
-    private lateinit var explanation: TextView
-    private lateinit var checkButton: Button
-    private lateinit var nextButton: Button
-    private lateinit var timer: TextView
+    private fun showHome(){stopTimer();val scroll=ScrollView(this).apply{isFillViewport=true;setBackgroundColor(bg)};val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setBackgroundColor(bg)};scroll.addView(root)
+        val hero=ImageView(this).apply{setImageResource(R.drawable.hero_fizika3);scaleType=ImageView.ScaleType.CENTER_CROP;contentDescription="Fizika 3 – Gimnazija Inđija"};root.addView(hero,LinearLayout.LayoutParams(-1,dp(455)))
+        val body=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(dp(18),dp(14),dp(18),dp(28))};root.addView(body)
+        body.addView(button("▶   ZAPOČNI TEST    →").apply{setOnClickListener{startTest()}},LinearLayout.LayoutParams(-1,dp(62)));gap(body,14)
+        val tiles=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER};addTile(tiles,"▤","OBLASTI","Ponovi ključne teme"){showAreas()};addTile(tiles,"▥","STATISTIKA","Prati svoj napredak"){showStats()};addTile(tiles,"⚙","OPCIJE","Prilagodi aplikaciju"){showOptions()};body.addView(tiles)
+        gap(body,14);val p=getSharedPreferences(prefsName,MODE_PRIVATE);val attempts=p.getInt("attempts",0);val best=p.getInt("best",0);val status=card();status.addView(tv("TVOJ NAPREDAK",12f,primary).apply{setTypeface(null,Typeface.BOLD);letterSpacing=.08f});status.addView(tv(if(attempts==0)"Još nema urađenih testova. Prvi rezultat će se sačuvati ovde." else "Urađenih testova: $attempts   •   Najbolji rezultat: $best%",14f,text).apply{setPadding(0,dp(7),0,0)});body.addView(status)
+        body.addView(center("ISTRAŽUJ  •  MISLI  •  NAPREDUJ",11f,muted).apply{letterSpacing=.08f;setPadding(0,dp(20),0,dp(8))});setContentView(scroll)}
+    private fun addTile(row:LinearLayout,icon:String,title:String,sub:String,go:()->Unit){val c=card();c.gravity=Gravity.CENTER;c.setOnClickListener{go()};c.addView(center(icon,26f,primary).apply{setTypeface(null,Typeface.BOLD)});c.addView(center(title,12f,dark).apply{setTypeface(null,Typeface.BOLD);setPadding(0,dp(3),0,0)});c.addView(center(sub,10f,muted).apply{setPadding(0,dp(4),0,0)});row.addView(c,LinearLayout.LayoutParams(0,dp(120),1f).apply{setMargins(dp(4),0,dp(4),0)})}
+    private fun showAreas()=showInfo("Oblasti","MOLEKULARNA FIZIKA I TERMODINAMIKA\n• gasni zakoni, temperatura, toplota i entropija\n\nFLUIDI I ELASTIČNOST\n• pritisak, Arhimedov zakon, Bernulijeva jednačina\n\nELEKTROSTATIKA\n• Kulonov zakon, električno polje, potencijal i kapacitet\n\nJEDNOSMERNA STRUJA\n• Omov zakon, Kirhofova pravila, rad i snaga struje")
+    private fun showStats(){val p=getSharedPreferences(prefsName,MODE_PRIVATE);val a=p.getInt("attempts",0);val best=p.getInt("best",0);val sum=p.getInt("sum",0);val last=p.getInt("last",0);val avg=if(a==0)0 else Math.round(sum/a.toFloat());showInfo("Statistika","Urađenih testova: $a\nPoslednji rezultat: $last%\nNajbolji rezultat: $best%\nProsečan rezultat: $avg%")}
+    private fun showOptions(){AlertDialog.Builder(this).setTitle("Opcije").setItems(arrayOf("Resetuj statistiku","O aplikaciji")){_,w->if(w==0){getSharedPreferences(prefsName,MODE_PRIVATE).edit().clear().apply();Toast.makeText(this,"Statistika je resetovana.",Toast.LENGTH_SHORT).show()}else AlertDialog.Builder(this).setTitle("Fizika 3 Premium").setMessage("Inicijalni test iz fizike za obnavljanje gradiva drugog razreda.\n\nGimnazija Inđija").setPositiveButton("U redu",null).show()}.setNegativeButton("Zatvori",null).show()}
+    private fun showInfo(t:String,b:String){val sc=ScrollView(this).apply{isFillViewport=true;setBackgroundColor(bg)};val r=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(dp(20),dp(22),dp(20),dp(26))};sc.addView(r);r.addView(tv(t,30f,dark).apply{setTypeface(null,Typeface.BOLD)});gap(r,14);val c=card();c.addView(tv(b,15f,text));r.addView(c);gap(r,18);r.addView(button("←  Nazad na početnu").apply{setOnClickListener{showHome()}},LinearLayout.LayoutParams(-1,dp(56)));setContentView(sc)}
 
-    private val timerRunnable = object : Runnable {
-        override fun run() {
-            if (!running) return
-            elapsed = SystemClock.elapsedRealtime() - startTime
-            timer.text = "Vreme ${formatTime(elapsed)}"
-            handler.postDelayed(this, 1000)
-        }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        window.statusBarColor = dark
-        window.navigationBarColor = dark
-        showHome()
-    }
-
-    private fun showHome() {
-        stopTimer()
-        val scroll = ScrollView(this).apply { isFillViewport = true; setBackgroundColor(bg) }
-        val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(bg) }
-        scroll.addView(root)
-
-        val hero = ImageView(this).apply {
-            setImageResource(R.drawable.fizika3_hero)
-            scaleType = ImageView.ScaleType.CENTER_CROP
-            contentDescription = "Fizika 3 – Gimnazija Inđija"
-        }
-        root.addView(hero, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(455)))
-
-        val body = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(18), dp(14), dp(18), dp(28)) }
-        root.addView(body)
-        body.addView(primaryButton("▶   ZAPOČNI TEST    →").apply { setOnClickListener { startTest() } }, LinearLayout.LayoutParams(-1, dp(62)))
-        gap(body, 14)
-
-        val tiles = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER }
-        addTile(tiles, "▤", "OBLASTI", "Ponovi ključne teme") { showAreas() }
-        addTile(tiles, "▥", "STATISTIKA", "Prati svoj napredak") { showStatistics() }
-        addTile(tiles, "⚙", "OPCIJE", "Prilagodi aplikaciju") { showOptions() }
-        body.addView(tiles, LinearLayout.LayoutParams(-1, -2)); gap(body, 14)
-
-        val p = getSharedPreferences(prefsName, MODE_PRIVATE); val attempts = p.getInt("attempts", 0); val best = p.getInt("best", 0)
-        val status = card(); status.addView(text("TVOJ NAPREDAK", 12, primary).apply { setTypeface(null, Typeface.BOLD); letterSpacing = .08f })
-        status.addView(text(if (attempts == 0) "Još nema urađenih testova. Prvi rezultat će se sačuvati ovde." else "Urađenih testova: $attempts   •   Najbolji rezultat: $best%", 14, textColor).apply { setPadding(0, dp(7), 0, 0) })
-        body.addView(status, LinearLayout.LayoutParams(-1, -2))
-        body.addView(centered("ISTRAŽUJ  •  MISLI  •  NAPREDUJ", 11, muted).apply { letterSpacing = .08f; setPadding(0, dp(20), 0, dp(8)) })
-        setContentView(scroll)
-    }
-
-    private fun showAreas() {
-        showInfo("Oblasti", """MOLEKULSKA FIZIKA I TERMODINAMIKA
-• idealni gas i gasni zakoni
-• unutrašnja energija, toplota i rad
-• prvi i drugi zakon termodinamike
-
-FLUIDI
-• pritisak i hidrostatički pritisak
-• Arhimedov zakon
-• strujanje fluida i Bernulijeva jednačina
-
-ELEKTROSTATIKA
-• Kulonov zakon, električno polje i potencijal
-• kondenzatori i energija električnog polja
-
-JEDNOSMERNA STRUJA
-• napon, jačina struje i otpor
-• Omov zakon i vezivanje otpornika
-• Kirhofova pravila i električna snaga""".trimIndent())
-    }
-
-    private fun showStatistics() {
-        val p = getSharedPreferences(prefsName, MODE_PRIVATE)
-        val attempts = p.getInt("attempts", 0); val best = p.getInt("best", 0); val sum = p.getInt("sum", 0); val last = p.getInt("last", 0)
-        val avg = if (attempts == 0) 0 else (sum.toFloat() / attempts).toInt()
-        showInfo("Statistika", "Urađenih testova: $attempts\nPoslednji rezultat: $last%\nNajbolji rezultat: $best%\nProsečan rezultat: $avg%\n\nRezultati se čuvaju samo na ovom uređaju.")
-    }
-
-    private fun showOptions() {
-        AlertDialog.Builder(this).setTitle("Opcije").setItems(arrayOf("Resetuj statistiku", "O aplikaciji")) { _, which ->
-            if (which == 0) { getSharedPreferences(prefsName, MODE_PRIVATE).edit().clear().apply(); Toast.makeText(this, "Statistika je resetovana.", Toast.LENGTH_SHORT).show(); showHome() }
-            else AlertDialog.Builder(this).setTitle("Fizika 3").setMessage("Inicijalni test za obnavljanje gradiva drugog razreda.\n\nGimnazija Inđija").setPositiveButton("U redu", null).show()
-        }.setNegativeButton("Zatvori", null).show()
-    }
-
-    private fun showInfo(title: String, bodyText: String) {
-        val scroll = ScrollView(this).apply { isFillViewport = true; setBackgroundColor(bg) }
-        val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(22), dp(20), dp(26)) }; scroll.addView(root)
-        root.addView(text(title, 30, dark).apply { setTypeface(null, Typeface.BOLD) }); gap(root, 14)
-        val c = card(); c.addView(text(bodyText, 15, textColor)); root.addView(c, LinearLayout.LayoutParams(-1, -2)); gap(root, 18)
-        root.addView(primaryButton("←  Nazad na početnu").apply { setOnClickListener { showHome() } }, LinearLayout.LayoutParams(-1, dp(56))); setContentView(scroll)
-    }
-
-    private fun startTest() { questions = MixedQuestionBank.buildTest20(); current = 0; score = 0; checked = false; elapsed = 0L; startTime = SystemClock.elapsedRealtime(); running = true; buildTestUi(); showQuestion(); handler.post(timerRunnable) }
-
-    private fun buildTestUi() {
-        val page = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(bg) }
-        val scroll = ScrollView(this).apply { isFillViewport = true }
-        val content = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(18), dp(18), dp(18), dp(22)) }; scroll.addView(content); page.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
-        content.addView(text("Fizika 3", 25, dark).apply { setTypeface(null, Typeface.BOLD) }); content.addView(text("Inicijalni test • gradivo drugog razreda", 13, muted).apply { setPadding(0, dp(2), 0, dp(13)) })
-        val top = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        progressText = text("", 13, muted); scoreText = text("", 13, dark).apply { setTypeface(null, Typeface.BOLD) }; top.addView(progressText, LinearLayout.LayoutParams(0, dp(34), 1f)); top.addView(scoreText); content.addView(top)
-        progressBar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply { max = 20; progressTintList = ColorStateList.valueOf(primary) }; content.addView(progressBar, LinearLayout.LayoutParams(-1, dp(9))); gap(content, 14)
-        val qcard = card(); questionText = text("", 20, textColor).apply { setTypeface(null, Typeface.BOLD); setPadding(0, dp(4), 0, dp(10)) }; qcard.addView(questionText); options = RadioGroup(this).apply { orientation = RadioGroup.VERTICAL }; qcard.addView(options); content.addView(qcard, LinearLayout.LayoutParams(-1, -2))
-        explanation = text("", 15, textColor).apply { setPadding(dp(14), dp(12), dp(14), dp(12)); visibility = android.view.View.GONE }; content.addView(explanation, LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, dp(12), 0, 0) })
-        val actions = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, dp(15), 0, 0) }
-        checkButton = primaryButton("Proveri odgovor").apply { setOnClickListener { checkAnswer() } }; actions.addView(checkButton, LinearLayout.LayoutParams(0, dp(54), 1f))
-        nextButton = Button(this).apply { isAllCaps = false; text = "Sledeće pitanje"; textSize = 15f; setTextColor(dark); setTypeface(null, Typeface.BOLD); background = round(Color.WHITE, line, 20, 1); visibility = android.view.View.GONE; setOnClickListener { nextQuestion() } }; actions.addView(nextButton, LinearLayout.LayoutParams(0, dp(54), 1f).apply { setMargins(dp(10), 0, 0, 0) }); content.addView(actions)
-        val timerBar = LinearLayout(this).apply { gravity = Gravity.CENTER; setBackgroundColor(dark) }; timer = centered("Vreme 00:00", 14, Color.WHITE).apply { setTypeface(null, Typeface.BOLD) }; timerBar.addView(timer); page.addView(timerBar, LinearLayout.LayoutParams(-1, dp(50)))
-        setContentView(page)
-    }
-
-    private fun showQuestion() {
-        if (current >= questions.size) { showResult(); return }
-        checked = false; val q = questions[current]; progressText.text = "Pitanje ${current + 1} od ${questions.size}"; scoreText.text = "Tačno: $score"; progressBar.progress = current + 1; questionText.text = q.text; options.removeAllViews()
-        q.options.forEachIndexed { index, option -> options.addView(optionButton(option, 1000 + index)) }
-        explanation.visibility = android.view.View.GONE; checkButton.isEnabled = true; checkButton.alpha = 1f; nextButton.visibility = android.view.View.GONE
-    }
-
-    private fun checkAnswer() {
-        if (checked) return
-        val selected = options.checkedRadioButtonId; if (selected == -1) { Toast.makeText(this, "Izaberi jedan odgovor.", Toast.LENGTH_SHORT).show(); return }
-        checked = true; val chosen = selected - 1000; val q = questions[current]; val ok = chosen == q.correct; if (ok) score++
-        explanation.text = if (ok) "✓ Tačno!\n${q.explanation}" else "✗ Netačno. Tačan odgovor: ${q.options[q.correct]}\n${q.explanation}"
-        explanation.background = if (ok) round(Color.parseColor("#E7F7EF"), Color.parseColor("#69BE91"), 14, 1) else round(Color.parseColor("#FFF7E6"), accent, 14, 1)
-        explanation.visibility = android.view.View.VISIBLE; scoreText.text = "Tačno: $score"; for (i in 0 until options.childCount) options.getChildAt(i).isEnabled = false; checkButton.isEnabled = false; checkButton.alpha = .5f; nextButton.text = if (current == questions.lastIndex) "Rezultat" else "Sledeće pitanje"; nextButton.visibility = android.view.View.VISIBLE
-    }
-
-    private fun nextQuestion() { if (!checked) return; current++; if (current >= questions.size) showResult() else showQuestion() }
-
-    private fun showResult() {
-        stopTimer(); val total = questions.size; val percent = if (total == 0) 0 else ((100f * score) / total).toInt(); saveStats(percent)
-        val scroll = ScrollView(this).apply { isFillViewport = true; setBackgroundColor(bg) }; val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL; setPadding(dp(20), dp(32), dp(20), dp(28)) }; scroll.addView(root)
-        root.addView(centered("REZULTAT", 13, primary).apply { setTypeface(null, Typeface.BOLD); letterSpacing = .12f }); gap(root, 10); root.addView(centered("$percent%", 54, dark).apply { setTypeface(null, Typeface.BOLD) }); root.addView(centered("$score / $total tačnih odgovora", 18, textColor)); root.addView(centered("Vreme izrade: ${formatTime(elapsed)}", 14, muted).apply { setPadding(0, dp(8), 0, 0) }); gap(root, 22)
-        root.addView(primaryButton("↻  Ponovi test").apply { setOnClickListener { startTest() } }, LinearLayout.LayoutParams(-1, dp(58))); gap(root, 12)
-        root.addView(Button(this).apply { isAllCaps = false; text = "←  Početna"; textSize = 16f; setTextColor(dark); setTypeface(null, Typeface.BOLD); background = round(Color.WHITE, line, 20, 1); setOnClickListener { showHome() } }, LinearLayout.LayoutParams(-1, dp(56))); setContentView(scroll)
-    }
-
-    private fun saveStats(percent: Int) { val p = getSharedPreferences(prefsName, MODE_PRIVATE); val attempts = p.getInt("attempts", 0) + 1; val best = maxOf(percent, p.getInt("best", 0)); val sum = p.getInt("sum", 0) + percent; p.edit().putInt("attempts", attempts).putInt("best", best).putInt("sum", sum).putInt("last", percent).apply() }
-    private fun stopTimer() { if (running) elapsed = SystemClock.elapsedRealtime() - startTime; running = false; handler.removeCallbacks(timerRunnable) }
-    private fun formatTime(ms: Long): String { val total = ms / 1000; return String.format("%02d:%02d", total / 60, total % 60) }
-    override fun onDestroy() { handler.removeCallbacks(timerRunnable); super.onDestroy() }
-    private fun primaryButton(label: String) = Button(this).apply { text = label; textSize = 17f; isAllCaps = false; setTextColor(Color.WHITE); setTypeface(null, Typeface.BOLD); background = round(primary, accent, 25, 1); elevation = dp(4).toFloat() }
-    private fun addTile(row: LinearLayout, icon: String, title: String, sub: String, click: () -> Unit) { val c = card().apply { gravity = Gravity.CENTER; isClickable = true; isFocusable = true; setOnClickListener { click() } }; c.addView(centered(icon, 27, primary).apply { setTypeface(null, Typeface.BOLD) }); c.addView(centered(title, 12, dark).apply { setTypeface(null, Typeface.BOLD); setPadding(0, dp(3), 0, 0) }); c.addView(centered(sub, 10, muted).apply { setPadding(0, dp(4), 0, 0) }); row.addView(c, LinearLayout.LayoutParams(0, dp(120), 1f).apply { setMargins(dp(4), 0, dp(4), 0) }) }
-    private fun card() = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16), dp(15), dp(16), dp(15)); background = round(Color.WHITE, line, 20, 1); elevation = dp(2).toFloat() }
-    private fun optionButton(value: String, idValue: Int) = RadioButton(this).apply { id = idValue; text = value; textSize = 16f; setTextColor(textColor); buttonTintList = ColorStateList.valueOf(primary); setPadding(dp(10), dp(10), dp(10), dp(10)); background = round(Color.parseColor("#F9FCFB"), line, 14, 1); layoutParams = LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, dp(5), 0, dp(5)) } }
-    private fun text(value: String, sp: Int, color: Int) = TextView(this).apply { text = value; textSize = sp.toFloat(); setTextColor(color); setLineSpacing(0f, 1.12f) }
-    private fun centered(value: String, sp: Int, color: Int) = text(value, sp, color).apply { gravity = Gravity.CENTER }
-    private fun gap(root: LinearLayout, h: Int) { root.addView(Space(this), LinearLayout.LayoutParams(1, dp(h))) }
-    private fun round(fill: Int, stroke: Int, radius: Int, strokeWidth: Int) = GradientDrawable().apply { shape = GradientDrawable.RECTANGLE; setColor(fill); cornerRadius = dp(radius).toFloat(); if (strokeWidth > 0) setStroke(dp(strokeWidth), stroke) }
-    private fun dp(v: Int): Int = (v * resources.displayMetrics.density + .5f).toInt()
+    private fun startTest(){questions=MixedQuestionBank.buildTest20();current=0;score=0;checked=false;startTime=SystemClock.elapsedRealtime();running=true;buildTestUi();showQuestion();handler.post(tick)}
+    private fun buildTestUi(){val page=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setBackgroundColor(bg)};val scroll=ScrollView(this).apply{isFillViewport=true};val c=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(dp(18),dp(18),dp(18),dp(22))};scroll.addView(c);page.addView(scroll,LinearLayout.LayoutParams(-1,0,1f));c.addView(tv("Fizika 3",25f,dark).apply{setTypeface(null,Typeface.BOLD)});c.addView(tv("Inicijalni test • gradivo drugog razreda",13f,muted).apply{setPadding(0,dp(2),0,dp(13))});val top=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL};progressText=tv("",13f,muted);scoreText=tv("",13f,dark).apply{setTypeface(null,Typeface.BOLD)};top.addView(progressText,LinearLayout.LayoutParams(0,dp(34),1f));top.addView(scoreText);c.addView(top);progressBar=ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal).apply{max=20;progressTintList=ColorStateList.valueOf(primary)};c.addView(progressBar,LinearLayout.LayoutParams(-1,dp(9)));gap(c,14);val qc=card();questionText=tv("",20f,text).apply{setTypeface(null,Typeface.BOLD)};qc.addView(questionText);options=RadioGroup(this).apply{orientation=RadioGroup.VERTICAL};qc.addView(options);c.addView(qc);explanation=tv("",15f,text).apply{setPadding(dp(14),dp(12),dp(14),dp(12));visibility=View.GONE};c.addView(explanation);val act=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;setPadding(0,dp(15),0,0)};checkButton=button("Proveri odgovor").apply{setOnClickListener{checkAnswer()}};nextButton=Button(this).apply{text="Sledeće pitanje";isAllCaps=false;setTextColor(dark);background=round(Color.WHITE,line,20,1);visibility=View.GONE;setOnClickListener{nextQuestion()}};act.addView(checkButton,LinearLayout.LayoutParams(0,dp(54),1f));act.addView(nextButton,LinearLayout.LayoutParams(0,dp(54),1f).apply{setMargins(dp(10),0,0,0)});c.addView(act);timer=center("Vreme 00:00",14f,Color.WHITE).apply{setTypeface(null,Typeface.BOLD);setBackgroundColor(dark)};page.addView(timer,LinearLayout.LayoutParams(-1,dp(50)));setContentView(page)}
+    private fun showQuestion(){val q=questions[current];checked=false;progressText.text="Pitanje ${current+1} od ${questions.size}";scoreText.text="Tačno: $score";progressBar.progress=current+1;questionText.text=q.text;options.removeAllViews();q.options.forEachIndexed{i,s->options.addView(RadioButton(this).apply{id=1000+i;text=s;textSize=16f;setTextColor(text);buttonTintList=ColorStateList.valueOf(primary);setPadding(dp(10),dp(10),dp(10),dp(10));background=round(Color.WHITE,line,14,1)},RadioGroup.LayoutParams(-1,-2).apply{setMargins(0,dp(5),0,dp(5))})};explanation.visibility=View.GONE;checkButton.isEnabled=true;nextButton.visibility=View.GONE}
+    private fun checkAnswer(){if(checked)return;val id=options.checkedRadioButtonId;if(id==-1){Toast.makeText(this,"Izaberi jedan odgovor.",Toast.LENGTH_SHORT).show();return};checked=true;val q=questions[current];val chosen=id-1000;val ok=chosen==q.correct;if(ok)score++;explanation.text=if(ok)"✓ Tačno!\n${q.explanation}" else "✗ Netačno. Tačan odgovor: ${q.options[q.correct]}\n${q.explanation}";explanation.background=round(if(ok)Color.parseColor("#E7F7EF") else Color.parseColor("#FFF7E6"),if(ok)Color.parseColor("#69BE91") else Color.parseColor("#E9BC59"),14,1);explanation.visibility=View.VISIBLE;for(i in 0 until options.childCount)options.getChildAt(i).isEnabled=false;checkButton.isEnabled=false;nextButton.text=if(current==questions.lastIndex)"Rezultat" else "Sledeće pitanje";nextButton.visibility=View.VISIBLE}
+    private fun nextQuestion(){if(!checked)return;current++;if(current>=questions.size)showResults() else showQuestion()}
+    private fun showResults(){stopTimer();val pct=if(questions.isEmpty())0 else Math.round(score*100f/questions.size);val p=getSharedPreferences(prefsName,MODE_PRIVATE);val a=p.getInt("attempts",0)+1;val best=maxOf(p.getInt("best",0),pct);val sum=p.getInt("sum",0)+pct;p.edit().putInt("attempts",a).putInt("best",best).putInt("sum",sum).putInt("last",pct).apply();showInfo("Rezultat","$pct%\n\n$score / ${questions.size} tačnih odgovora\n\nVreme izrade: ${format(elapsed)}")}
+    private fun stopTimer(){if(running)elapsed=SystemClock.elapsedRealtime()-startTime;running=false;handler.removeCallbacks(tick)}
+    private fun format(ms:Long):String{val s=ms/1000;return String.format("%02d:%02d",s/60,s%60)}
+    override fun onDestroy(){handler.removeCallbacks(tick);super.onDestroy()}
 }
