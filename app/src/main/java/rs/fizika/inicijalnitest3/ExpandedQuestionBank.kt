@@ -1,0 +1,82 @@
+package rs.fizika.inicijalnitest3
+
+object ExpandedQuestionBank {
+    val standard = listOf(
+        Question("Temperatura idealnog gasa je mera:", listOf("ukupne mase gasa", "srednje kinetičke energije molekula", "zapremine molekula", "broja sudova"), 1, "Apsolutna temperatura je proporcionalna srednjoj kinetičkoj energiji haotičnog kretanja molekula."),
+        Question("Ako se apsolutna temperatura idealnog gasa udvostruči, srednja kinetička energija molekula:", listOf("se prepolovi", "ostaje ista", "udvostruči se", "učetvorostruči se"), 2, "Važi ⟨Ek⟩ = 3kT/2, pa je ⟨Ek⟩ proporcionalna T."),
+        Question("Koja temperatura se koristi u jednačini pV=nRT?", listOf("Celzijusova", "Kelvinova", "Farenhajtova", "bilo koja"), 1, "U gasnim zakonima temperatura se izražava u kelvinima."),
+        Question("Pri izotermskom sabijanju idealnog gasa pritisak:", listOf("opada", "raste", "ostaje isti", "postaje nula"), 1, "Pri T=const. važi pV=const; smanjenje V izaziva povećanje p."),
+        Question("Na p-V dijagramu površina ispod krive procesa predstavlja:", listOf("temperaturu", "rad gasa", "unutrašnju energiju", "količinu supstancije"), 1, "Rad gasa je A=∫p dV, geometrijski površina ispod p-V krive."),
+        Question("U adijabatskom procesu:", listOf("Q=0", "A=0", "ΔU=0", "p=const."), 0, "Adijabatski proces nema razmenu toplote sa okolinom: Q=0."),
+        Question("Unutrašnja energija jednoatomskog idealnog gasa zavisi od:", listOf("samo temperature i količine gasa", "oblika suda", "pritiska nezavisno od T", "površine suda"), 0, "Za jednoatomski idealni gas U=3nRT/2."),
+        Question("Toplotna mašina ne može imati η=100% jer:", listOf("krši drugi zakon termodinamike", "nema unutrašnju energiju", "rad je uvek nula", "temperatura se meri u K"), 0, "Drugi zakon zahteva predaju dela toplote hladnijem rezervoaru."),
+        Question("Pri istim temperaturama rezervoara Karnoova mašina ima:", listOf("najmanji mogući η", "najveći teorijski η", "η=100%", "η=0 uvek"), 1, "Karnoov ciklus postavlja maksimalni teorijski stepen korisnog dejstva."),
+        Question("Specifični toplotni kapacitet govori koliko toplote treba za:", listOf("topljenje 1 kg", "zagrevanje 1 kg za 1 K", "isparavanje 1 kg", "povećanje pritiska za 1 Pa"), 1, "Iz Q=mcΔT sledi značenje specifičnog toplotnog kapaciteta c."),
+        Question("Tokom ključanja čiste tečnosti pri stalnom pritisku dovedena toplota prvenstveno:", listOf("povećava temperaturu", "omogućava fazni prelaz", "smanjuje masu molekula", "smanjuje unutrašnju energiju"), 1, "Tokom faznog prelaza temperatura je približno stalna, a energija menja stanje supstancije."),
+        Question("Hidrostatički pritisak na istoj dubini u istoj tečnosti:", listOf("zavisi od oblika suda", "jednak je", "zavisi od površine dna", "uvek je nula"), 1, "p=p0+ρgh zavisi od dubine, gustine i spoljnog pritiska, ne od oblika suda."),
+        Question("Telo pliva kada je, u ravnoteži:", listOf("FA=mg", "FA=0", "FA<mg", "FA>mg"), 0, "Za telo koje miruje na površini rezultujuća sila je nula, pa FA=mg."),
+        Question("Hidraulična presa daje dobitak u sili zato što je:", listOf("pritisak prenet kroz fluid", "energija stvorena", "gustina uvek nula", "Arhimedova sila nestala"), 0, "Paskalov zakon: isti pritisak deluje na klipove, pa veća površina daje veću silu."),
+        Question("Ako se presek cevi smanji dva puta, brzina nestlačivog fluida se pri stalnom protoku:", listOf("smanji dva puta", "poveća dva puta", "ne menja", "poveća četiri puta"), 1, "Iz Sv=const sledi v∝1/S."),
+        Question("U horizontalnoj cevi, gde idealni fluid teče brže, statički pritisak je:", listOf("veći", "manji", "isti", "uvek atmosferski"), 1, "Iz Bernulijeve jednačine pri istoj visini veća brzina znači manji statički pritisak."),
+        Question("Jungov modul povezuje:", listOf("napon i relativnu deformaciju", "pritisak i temperaturu", "struju i napon", "naboj i potencijal"), 0, "U oblasti elastičnosti σ=Eε."),
+        Question("Ako oprugu u oblasti važenja Hukovog zakona istegnemo dva puta više, sila opruge:", listOf("se prepolovi", "udvostruči se", "učetvorostruči se", "ostaje ista"), 1, "F=kx po intenzitetu, pa je sila proporcionalna izduženju."),
+        Question("Kapilarno podizanje je veće u cevi:", listOf("većeg poluprečnika", "manjeg poluprečnika", "nezavisno od poluprečnika", "samo horizontalnoj"), 1, "h=2σcosθ/(ρgr), pa h raste kada r opada."),
+        Question("Viskoznost opisuje:", listOf("unutrašnje trenje fluida", "električni otpor", "gustinu naboja", "toplotni kapacitet"), 0, "Viskoznost karakteriše otpor fluida relativnom kretanju njegovih slojeva."),
+        Question("Dva istoimena tačkasta naboja se:", listOf("privlače", "odbijaju", "ne deluju", "uvek neutrališu"), 1, "Istoimeni naboji se odbijaju, raznoimeni privlače."),
+        Question("Ako se rastojanje između dva tačkasta naboja udvostruči, Kulonova sila:", listOf("udvostruči se", "prepolovi se", "smanji se četiri puta", "poveća se četiri puta"), 2, "F∝1/r², pa za 2r sila postaje F/4."),
+        Question("Električne silnice pozitivnog izolovanog naboja usmerene su:", listOf("ka naboju", "od naboja", "kružno", "nasumično"), 1, "Smer E je smer sile na pozitivan probni naboj, zato silnice izlaze iz pozitivnog naboja."),
+        Question("Električni potencijal je:", listOf("vektorska veličina", "skalarna veličina", "uvek pozitivan", "isto što i sila"), 1, "Potencijal je skalar: φ=Ep/q."),
+        Question("Rad električne sile pri pomeranju naboja između dve tačke zavisi od:", listOf("putanje obavezno", "razlike potencijala", "vremena kretanja", "mase provodnika"), 1, "Elektrostatičko polje je konzervativno; rad je povezan sa naponom A=qU."),
+        Question("U elektrostatčkoj ravnoteži unutar provodnika električno polje je:", listOf("maksimalno", "nula", "uvek 1 V/m", "jednako gravitacionom"), 1, "Slobodni naboji se preraspodele dok unutrašnje elektrostatičko polje ne postane nula."),
+        Question("Ubacivanje dielektrika između ploča izolovanog kondenzatora povećava njegov:", listOf("kapacitet", "razmak ploča", "slobodan naboj", "otpor"), 0, "C=ε0εrS/d; veća relativna permitivnost povećava kapacitet."),
+        Question("Kod redne veze kondenzatora na svakom kondenzatoru je po intenzitetu:", listOf("isti naboj", "isti kapacitet", "uvek isti napon", "nula energije"), 0, "Kod redne veze kondenzatori nose jednak iznos naboja, dok se naponi dele."),
+        Question("Kod paralelne veze kondenzatora na svakom kondenzatoru je:", listOf("isti napon", "isti naboj uvek", "isti kapacitet", "nulta energija"), 0, "Paralelno vezani kondenzatori priključeni su na iste dve tačke, pa imaju isti napon."),
+        Question("Konvencionalni smer električne struje u spoljašnjem kolu je smer kretanja:", listOf("pozitivnog naboja", "elektrona", "neutrona", "atoma rešetke"), 0, "Smer struje definisan je kao smer kretanja pozitivnog naboja, suprotan driftu elektrona u metalu."),
+        Question("Za metalni provodnik pri porastu temperature električni otpor uglavnom:", listOf("opada", "raste", "postaje nula", "ne zavisi od temperature"), 1, "Kod metala porast temperature pojačava rasejanje elektrona i povećava otpor."),
+        Question("Kod redne veze otpornika kroz sve otpornike teče:", listOf("ista struja", "isti napon", "različit naboj po sekundi", "nulta struja"), 0, "U jednostavnoj rednoj grani nema račvanja, pa je struja ista."),
+        Question("Kod paralelne veze otpornika na svim granama je:", listOf("isti napon", "ista struja", "isti otpor", "ista snaga"), 0, "Sve grane su vezane između istih čvorova i zato imaju isti napon."),
+        Question("Električna snaga potrošača može se izraziti kao:", listOf("P=UI", "P=U/I", "P=It", "P=q/U"), 0, "Snaga je brzina pretvaranja električne energije: P=UI."),
+        Question("EMS izvora predstavlja:", listOf("rad neelektričnih sila po jedinici naboja", "otpor provodnika", "snagu potrošača", "kapacitet izvora"), 0, "Elektromotorna sila ε=A/q opisuje energiju koju izvor predaje jedinici naboja."),
+        Question("Kada realni izvor daje struju, njegov priključni napon je:", listOf("U=ε-Ir", "U=ε+Ir uvek", "U=0 uvek", "U=R/I"), 0, "Deo EMS se gubi na unutrašnjem otporu izvora: U=ε-Ir."),
+        Question("Prvo Kirhofovo pravilo primenjuje se na:", listOf("čvor električnog kola", "samo jedan otpornik", "kondenzator bez kola", "gasni proces"), 0, "U čvoru zbir struja koje ulaze jednak je zbiru struja koje izlaze."),
+        Question("Drugo Kirhofovo pravilo primenjuje se na:", listOf("zatvorenu konturu", "samo čvor", "površinu kondenzatora", "otvoren provodnik"), 0, "U zatvorenoj konturi algebarski zbir promena potencijala je nula."),
+        Question("Kratak spoj realnog izvora znači da je spoljašnji otpor približno:", listOf("nula", "beskonačan", "jednak ε", "jednak kapacitetu"), 0, "Pri R≈0 struju ograničava uglavnom unutrašnji otpor r, pa može biti veoma velika."),
+        Question("Džul-Lencov zakon opisuje pretvaranje električne energije u:", listOf("toplotu", "masu", "naboj", "gravitacionu energiju isključivo"), 0, "Na otporniku se električna energija pretvara u toplotu: Q=I²Rt.")
+    )
+
+    val basicCalculations = listOf(
+        Question("Gas ima p1=100 kPa i V1=4 L. Izotermski se sabije na 2 L. p2 je:", listOf("50 kPa", "100 kPa", "200 kPa", "400 kPa"), 2, "p1V1=p2V2, pa p2=100·4/2=200 kPa."),
+        Question("Gas primi 900 J toplote i izvrši 300 J rada. ΔU je:", listOf("600 J", "1200 J", "300 J", "-600 J"), 0, "Q=ΔU+A, pa ΔU=900-300=600 J."),
+        Question("Koliko toplote treba za 2 kg vode da se zagreje za 5 K ako je c=4200 J/(kgK)?", listOf("4200 J", "21000 J", "42000 J", "84000 J"), 2, "Q=mcΔT=2·4200·5=42000 J."),
+        Question("Na dubini 3 m u vodi, uz g=10 m/s², hidrostatički pritisak je:", listOf("3 kPa", "30 kPa", "300 kPa", "3000 kPa"), 1, "p=ρgh=1000·10·3=30000 Pa=30 kPa."),
+        Question("Telo zapremine 0,002 m³ potpuno je u vodi. Uz g=10 m/s², FA je:", listOf("2 N", "20 N", "200 N", "2000 N"), 1, "FA=ρgV=1000·10·0,002=20 N."),
+        Question("Presek cevi se smanji sa 6 cm² na 3 cm². Ako je v1=2 m/s, v2 je:", listOf("1 m/s", "2 m/s", "4 m/s", "6 m/s"), 2, "S1v1=S2v2, pa v2=6·2/3=4 m/s."),
+        Question("Opruga k=200 N/m istegnuta je 3 cm. Sila opruge po intenzitetu je:", listOf("0,6 N", "6 N", "60 N", "600 N"), 1, "x=0,03 m; F=kx=200·0,03=6 N."),
+        Question("Dva naboja 1 μC i 2 μC udaljena su 0,30 m. Kulonova sila je približno:", listOf("0,02 N", "0,2 N", "2 N", "20 N"), 1, "F=9·10⁹·2·10⁻¹²/0,09=0,2 N."),
+        Question("Napon 240 V je između ploča udaljenih 2 cm. E je:", listOf("120 V/m", "1200 V/m", "12000 V/m", "48000 V/m"), 2, "d=0,02 m; E=U/d=240/0,02=12000 V/m."),
+        Question("Kondenzator C=5 μF je na 200 V. Naboj q je:", listOf("0,1 mC", "1 mC", "10 mC", "100 mC"), 1, "q=CU=5·10⁻⁶·200=10⁻³ C=1 mC."),
+        Question("Otpornik 20 Ω je na naponu 100 V. Struja je:", listOf("0,2 A", "2 A", "5 A", "20 A"), 2, "I=U/R=100/20=5 A."),
+        Question("Kroz otpornik 10 Ω teče 2 A. Snaga je:", listOf("20 W", "40 W", "100 W", "200 W"), 1, "P=I²R=4·10=40 W."),
+        Question("Otpornici 4 Ω i 6 Ω vezani su redno. Ekvivalentni otpor je:", listOf("2,4 Ω", "5 Ω", "10 Ω", "24 Ω"), 2, "R=R1+R2=10 Ω."),
+        Question("Dva otpornika od 6 Ω vezana su paralelno. Ekvivalentni otpor je:", listOf("3 Ω", "6 Ω", "12 Ω", "36 Ω"), 0, "Za dva jednaka paralelna otpornika Req=R/2=3 Ω."),
+        Question("Izvor ε=9 V, r=1 Ω i R=8 Ω daje struju:", listOf("0,5 A", "1 A", "8 A", "9 A"), 1, "I=ε/(R+r)=9/9=1 A.")
+    )
+
+    val mediumCalculations = listOf(
+        Question("Jedan mol idealnog gasa pri T=300 K zauzima V≈0,025 m³. Uz R=8,31 J/(molK), pritisak je približno:", listOf("10 kPa", "100 kPa", "1 MPa", "10 MPa"), 1, "p=nRT/V=1·8,31·300/0,025≈99720 Pa≈100 kPa."),
+        Question("Toplotna mašina primi 2500 J i preda hladnjaku 1500 J. η je:", listOf("20%", "40%", "60%", "80%"), 1, "A=Q1-Q2=1000 J; η=A/Q1=1000/2500=0,40=40%."),
+        Question("Gas se izobarski širi pri 150 kPa sa 2 L na 6 L. Rad gasa je:", listOf("60 J", "600 J", "900 J", "6000 J"), 1, "ΔV=4·10⁻³ m³; A=pΔV=150000·0,004=600 J."),
+        Question("Hidraulična presa ima S1=5 cm² i S2=200 cm². Ako na mali klip deluje 50 N, sila na velikom je:", listOf("125 N", "500 N", "1000 N", "2000 N"), 3, "F1/S1=F2/S2, pa F2=50·200/5=2000 N."),
+        Question("Voda ističe iz otvora 1,8 m ispod površine. Uz g=10 m/s², brzina je:", listOf("3 m/s", "6 m/s", "18 m/s", "36 m/s"), 1, "Toričeli: v=√(2gh)=√36=6 m/s."),
+        Question("Opruga k=400 N/m sabijena je 5 cm. Elastična energija je:", listOf("0,05 J", "0,5 J", "5 J", "50 J"), 1, "E=kx²/2=400·0,05²/2=0,5 J."),
+        Question("Ako se rastojanje dva naboja smanji sa r na r/3, Kulonova sila postaje:", listOf("F/9", "F/3", "3F", "9F"), 3, "F∝1/r²; za r/3 sila je 9F."),
+        Question("Naboj 4 μC pomeri se kroz napon 250 V. Rad električne sile po intenzitetu je:", listOf("0,1 mJ", "1 mJ", "10 mJ", "100 mJ"), 1, "A=qU=4·10⁻⁶·250=10⁻³ J=1 mJ."),
+        Question("Kondenzatori 6 μF i 3 μF vezani su redno. Ekvivalentni kapacitet je:", listOf("2 μF", "3 μF", "4,5 μF", "9 μF"), 0, "Ceq=C1C2/(C1+C2)=18/9=2 μF."),
+        Question("Kondenzatori 4 μF i 8 μF vezani su paralelno na 100 V. Ukupan naboj je:", listOf("0,12 mC", "1,2 mC", "12 mC", "120 mC"), 1, "Ceq=12 μF; q=CeqU=12·10⁻⁶·100=1,2·10⁻³ C=1,2 mC."),
+        Question("Grejač snage 1,5 kW radi 20 min. Potrošena energija je:", listOf("0,05 kWh", "0,5 kWh", "5 kWh", "30 kWh"), 1, "20 min=1/3 h; E=Pt=1,5·1/3=0,5 kWh."),
+        Question("Otpornici 3 Ω i 6 Ω su paralelno, a kombinacija je redno sa 4 Ω. Ukupan otpor je:", listOf("2 Ω", "4 Ω", "6 Ω", "13 Ω"), 2, "Paralelno: Rp=3·6/(3+6)=2 Ω; ukupno R=2+4=6 Ω."),
+        Question("Izvor ε=12 V, r=2 Ω priključen je na R=4 Ω. Priključni napon je:", listOf("4 V", "8 V", "10 V", "12 V"), 1, "I=12/(4+2)=2 A; U=IR=8 V, odnosno ε-Ir=8 V."),
+        Question("U čvor ulaze struje 2 A i 3 A, a izlaze 1 A i I. I je:", listOf("1 A", "2 A", "4 A", "6 A"), 2, "Prvo Kirhofovo pravilo: 2+3=1+I, pa I=4 A."),
+        Question("Kroz otpornik 5 Ω tokom 2 min teče 3 A. Oslobođena toplota je:", listOf("540 J", "2700 J", "5400 J", "10800 J"), 2, "t=120 s; Q=I²Rt=9·5·120=5400 J.")
+    )
+}
