@@ -1,0 +1,7 @@
+<resources>
+    <color name="physics_navy">#0B2A4A</color>
+    <color name="physics_blue">#1565C0</color>
+    <color name="physics_white">#FFFFFF</color>
+    <color name="physics_muted">#5B7390</color>
+    <color name="physics_light_blue">#EAF4FF</color>
+</resources>
