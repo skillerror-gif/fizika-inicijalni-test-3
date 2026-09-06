@@ -28,14 +28,27 @@ jobs:
       - name: Install Android SDK 35
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
+      - name: Restore 480x528 hero image
+        run: |
+          base64 -d app/src/main/res/drawable-nodpi/fizika3_hero_b64.txt > app/src/main/res/drawable-nodpi/fizika3_hero.jpg
+          rm -f app/src/main/res/drawable-nodpi/fizika3_hero_b64.txt
+          file app/src/main/res/drawable-nodpi/fizika3_hero.jpg
+          test -s app/src/main/res/drawable-nodpi/fizika3_hero.jpg
+
       - name: Build debug APK
         run: gradle assembleDebug
 
+      - name: Verify hero in APK
+        run: |
+          mkdir -p /tmp/apkcheck
+          unzip -q app/build/outputs/apk/debug/app-debug.apk -d /tmp/apkcheck
+          file /tmp/apkcheck/res/drawable-nodpi-v4/fizika3_hero.jpg
+
       - name: Rename APK
-        run: mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/Fizika-Inicijalni-Test-3.apk
+        run: mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/Fizika-Inicijalni-Test-3-Premium.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Fizika-Inicijalni-Test-3
-          path: app/build/outputs/apk/debug/Fizika-Inicijalni-Test-3.apk
+          name: Fizika-Inicijalni-Test-3-Premium
+          path: app/build/outputs/apk/debug/Fizika-Inicijalni-Test-3-Premium.apk
