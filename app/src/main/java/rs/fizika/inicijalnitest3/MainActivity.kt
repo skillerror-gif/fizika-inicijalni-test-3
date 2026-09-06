@@ -4,20 +4,13 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.StateListDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.view.Gravity
-import android.view.View
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.RadioButton
-import android.widget.RadioGroup
-import android.widget.ScrollView
-import android.widget.TextView
+import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
 data class Question(
@@ -28,404 +21,181 @@ data class Question(
 )
 
 class MainActivity : AppCompatActivity() {
-    private val blue = Color.parseColor("#1267D8")
-    private val darkBlue = Color.parseColor("#123A78")
-    private val lightBlue = Color.parseColor("#EAF4FF")
-    private val borderBlue = Color.parseColor("#B9D9F7")
-    private val textDark = Color.parseColor("#14345E")
-    private val muted = Color.parseColor("#58779E")
+    private val dark = Color.parseColor("#29265F")
+    private val primary = Color.parseColor("#4C4AA7")
+    private val accent = Color.parseColor("#D7A54A")
+    private val bg = Color.parseColor("#F6F6FB")
+    private val textColor = Color.parseColor("#252544")
+    private val muted = Color.parseColor("#74748C")
+    private val line = Color.parseColor("#D8D8EA")
+    private val prefsName = "fizika3_premium_stats"
 
-    private lateinit var hero: ImageView
-    private lateinit var title: TextView
-    private lateinit var subtitle: TextView
-    private lateinit var intro: TextView
-    private lateinit var start: Button
-    private lateinit var quote: TextView
-    private lateinit var luck: TextView
-    private lateinit var progress: TextView
-    private lateinit var question: TextView
-    private lateinit var options: RadioGroup
-    private lateinit var optionButtons: List<RadioButton>
-    private lateinit var explanation: TextView
-    private lateinit var next: Button
-    private lateinit var result: TextView
-    private lateinit var restart: Button
-    private lateinit var timer: TextView
-
-    private var questions: List<Question> = emptyList()
-    private var current = 0
-    private var score = 0
-    private var checked = false
     private val handler = Handler(Looper.getMainLooper())
     private var startTime = 0L
     private var elapsed = 0L
     private var running = false
+    private var questions: List<Question> = emptyList()
+    private var current = 0
+    private var score = 0
+    private var checked = false
+
+    private lateinit var progressText: TextView
+    private lateinit var scoreText: TextView
+    private lateinit var progressBar: ProgressBar
+    private lateinit var questionText: TextView
+    private lateinit var options: RadioGroup
+    private lateinit var explanation: TextView
+    private lateinit var checkButton: Button
+    private lateinit var nextButton: Button
+    private lateinit var timer: TextView
 
     private val timerRunnable = object : Runnable {
         override fun run() {
             if (!running) return
             elapsed = SystemClock.elapsedRealtime() - startTime
-            timer.text = "⏱  Vreme: ${formatTime(elapsed)}"
+            timer.text = "Vreme ${formatTime(elapsed)}"
             handler.postDelayed(this, 1000)
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.statusBarColor = Color.WHITE
-        window.navigationBarColor = Color.WHITE
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-
-        val root = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(dp(22), dp(20), dp(22), dp(28))
-            setBackgroundColor(Color.WHITE)
-        }
-
-        hero = ImageView(this).apply {
-            setImageResource(R.drawable.hero_fizika3)
-            scaleType = ImageView.ScaleType.CENTER_CROP
-            background = rounded(Color.WHITE, Color.TRANSPARENT, 28f, 0)
-            clipToOutline = true
-            elevation = dp(7).toFloat()
-            contentDescription = "Ilustracija fizike"
-        }
-        root.addView(hero, LinearLayout.LayoutParams(dp(220), dp(220)).apply { bottomMargin = dp(20) })
-
-        title = TextView(this).apply {
-            text = "Fizika 3"
-            textSize = 34f
-            setTextColor(darkBlue)
-            setTypeface(Typeface.DEFAULT_BOLD)
-            gravity = Gravity.CENTER
-        }
-        root.addView(title, matchWrap(2))
-
-        subtitle = TextView(this).apply {
-            text = "Inicijalni test"
-            textSize = 23f
-            setTextColor(blue)
-            setTypeface(Typeface.DEFAULT_BOLD)
-            gravity = Gravity.CENTER
-        }
-        root.addView(subtitle, matchWrap(14))
-
-        intro = TextView(this).apply {
-            text = "20 nasumično izabranih pitanja iz gradiva drugog razreda"
-            textSize = 16f
-            setTextColor(muted)
-            gravity = Gravity.CENTER
-            setLineSpacing(0f, 1.15f)
-        }
-        root.addView(intro, matchWrap(22))
-
-        start = Button(this).apply {
-            text = "Počni test  →"
-            textSize = 19f
-            setTextColor(Color.WHITE)
-            setTypeface(Typeface.DEFAULT_BOLD)
-            isAllCaps = false
-            background = rounded(blue, blue, 18f, 1)
-            elevation = dp(5).toFloat()
-        }
-        root.addView(start, matchHeight(dp(64), 22))
-
-        quote = TextView(this).apply {
-            text = "„Energija sveta je konstantna; entropija sveta teži maksimumu.“\n\nRudolf Clausius"
-            textSize = 15f
-            setTextColor(darkBlue)
-            setTypeface(Typeface.create(Typeface.SERIF, Typeface.ITALIC))
-            gravity = Gravity.CENTER
-            setPadding(dp(18), dp(18), dp(18), dp(18))
-            background = rounded(lightBlue, Color.TRANSPARENT, 20f, 0)
-        }
-        root.addView(quote, matchWrap(14))
-
-        luck = TextView(this).apply {
-            text = "Srećno! Poveži pojavu, zakon, formulu i fizičko značenje."
-            textSize = 15f
-            setTextColor(muted)
-            gravity = Gravity.CENTER
-            setPadding(dp(14), dp(14), dp(14), dp(14))
-            background = rounded(lightBlue, Color.TRANSPARENT, 18f, 0)
-        }
-        root.addView(luck, matchWrap(8))
-
-        progress = TextView(this).apply {
-            textSize = 17f
-            setTextColor(darkBlue)
-            setTypeface(Typeface.DEFAULT_BOLD)
-            gravity = Gravity.CENTER
-            visibility = View.GONE
-            setPadding(dp(12), dp(12), dp(12), dp(12))
-            background = rounded(lightBlue, borderBlue, 16f, 1)
-        }
-        root.addView(progress, matchWrap(14))
-
-        question = TextView(this).apply {
-            textSize = 21f
-            setTextColor(textDark)
-            setTypeface(Typeface.DEFAULT_BOLD)
-            visibility = View.GONE
-            setPadding(dp(20), dp(22), dp(20), dp(22))
-            background = cardBackground()
-            elevation = dp(5).toFloat()
-        }
-        root.addView(question, matchWrap(14))
-
-        options = RadioGroup(this).apply {
-            orientation = RadioGroup.VERTICAL
-            visibility = View.GONE
-        }
-        root.addView(options, matchWrap(10))
-
-        optionButtons = List(4) { index ->
-            RadioButton(this).apply {
-                id = View.generateViewId()
-                textSize = 17f
-                setTextColor(textDark)
-                buttonTintList = ColorStateList(
-                    arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
-                    intArrayOf(blue, blue)
-                )
-                setPadding(dp(15), dp(12), dp(15), dp(12))
-                background = answerBackground()
-                setOnClickListener { checkAnswer() }
-                options.addView(this, RadioGroup.LayoutParams(RadioGroup.LayoutParams.MATCH_PARENT, RadioGroup.LayoutParams.WRAP_CONTENT).apply {
-                    bottomMargin = if (index == 3) 0 else dp(10)
-                })
-            }
-        }
-
-        explanation = TextView(this).apply {
-            textSize = 16f
-            setTextColor(textDark)
-            visibility = View.GONE
-            setPadding(dp(16), dp(16), dp(16), dp(16))
-            background = rounded(lightBlue, borderBlue, 16f, 1)
-        }
-        root.addView(explanation, matchWrap(14))
-
-        next = Button(this).apply {
-            text = "Sledeće  →"
-            textSize = 17f
-            setTextColor(Color.WHITE)
-            setTypeface(Typeface.DEFAULT_BOLD)
-            isAllCaps = false
-            visibility = View.GONE
-            background = rounded(blue, blue, 18f, 1)
-            elevation = dp(5).toFloat()
-        }
-        root.addView(next, matchHeight(dp(58), 10))
-
-        result = TextView(this).apply {
-            textSize = 22f
-            setTextColor(darkBlue)
-            setTypeface(Typeface.DEFAULT_BOLD)
-            gravity = Gravity.CENTER
-            visibility = View.GONE
-            setPadding(dp(20), dp(28), dp(20), dp(28))
-            background = cardBackground()
-            elevation = dp(6).toFloat()
-        }
-        root.addView(result, matchWrap(16))
-
-        restart = Button(this).apply {
-            text = "↻  Ponovi test"
-            textSize = 17f
-            setTextColor(blue)
-            setTypeface(Typeface.DEFAULT_BOLD)
-            isAllCaps = false
-            visibility = View.GONE
-            background = rounded(Color.WHITE, blue, 18f, 2)
-        }
-        root.addView(restart, matchHeight(dp(58), 10))
-
-        val scroll = ScrollView(this).apply {
-            setBackgroundColor(Color.WHITE)
-            addView(root)
-        }
-
-        timer = TextView(this).apply {
-            text = "⏱  Vreme: 00:00"
-            textSize = 17f
-            setTextColor(darkBlue)
-            setTypeface(Typeface.DEFAULT_BOLD)
-            gravity = Gravity.CENTER
-            visibility = View.GONE
-            setPadding(dp(12), dp(13), dp(12), dp(13))
-            background = rounded(lightBlue, borderBlue, 0f, 1)
-        }
-
-        val screen = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.WHITE)
-            addView(scroll, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
-            addView(timer, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
-        }
-        setContentView(screen)
-
-        start.setOnClickListener { startTest() }
-        next.setOnClickListener { goNext() }
-        restart.setOnClickListener { showStart() }
+        window.statusBarColor = dark
+        window.navigationBarColor = dark
+        showHome()
     }
 
-    private fun startTest() {
-        questions = MixedQuestionBank.buildTest20()
-        current = 0
-        score = 0
-        hero.visibility = View.GONE
-        intro.visibility = View.GONE
-        start.visibility = View.GONE
-        quote.visibility = View.GONE
-        luck.visibility = View.GONE
-        subtitle.text = "Test u toku"
-        result.visibility = View.GONE
-        restart.visibility = View.GONE
-        progress.visibility = View.VISIBLE
-        question.visibility = View.VISIBLE
-        options.visibility = View.VISIBLE
-        timer.visibility = View.VISIBLE
-        startTimer()
-        showQuestion()
+    private fun showHome() {
+        stopTimer()
+        val scroll = ScrollView(this).apply { isFillViewport = true; setBackgroundColor(bg) }
+        val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(bg) }
+        scroll.addView(root)
+
+        val hero = ImageView(this).apply {
+            setImageResource(R.drawable.fizika3_hero)
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            contentDescription = "Fizika 3 – Gimnazija Inđija"
+        }
+        root.addView(hero, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(455)))
+
+        val body = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(18), dp(14), dp(18), dp(28)) }
+        root.addView(body)
+        body.addView(primaryButton("▶   ZAPOČNI TEST    →").apply { setOnClickListener { startTest() } }, LinearLayout.LayoutParams(-1, dp(62)))
+        gap(body, 14)
+
+        val tiles = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER }
+        addTile(tiles, "▤", "OBLASTI", "Ponovi ključne teme") { showAreas() }
+        addTile(tiles, "▥", "STATISTIKA", "Prati svoj napredak") { showStatistics() }
+        addTile(tiles, "⚙", "OPCIJE", "Prilagodi aplikaciju") { showOptions() }
+        body.addView(tiles, LinearLayout.LayoutParams(-1, -2)); gap(body, 14)
+
+        val p = getSharedPreferences(prefsName, MODE_PRIVATE); val attempts = p.getInt("attempts", 0); val best = p.getInt("best", 0)
+        val status = card(); status.addView(text("TVOJ NAPREDAK", 12, primary).apply { setTypeface(null, Typeface.BOLD); letterSpacing = .08f })
+        status.addView(text(if (attempts == 0) "Još nema urađenih testova. Prvi rezultat će se sačuvati ovde." else "Urađenih testova: $attempts   •   Najbolji rezultat: $best%", 14, textColor).apply { setPadding(0, dp(7), 0, 0) })
+        body.addView(status, LinearLayout.LayoutParams(-1, -2))
+        body.addView(centered("ISTRAŽUJ  •  MISLI  •  NAPREDUJ", 11, muted).apply { letterSpacing = .08f; setPadding(0, dp(20), 0, dp(8)) })
+        setContentView(scroll)
+    }
+
+    private fun showAreas() {
+        showInfo("Oblasti", """MOLEKULSKA FIZIKA I TERMODINAMIKA
+• idealni gas i gasni zakoni
+• unutrašnja energija, toplota i rad
+• prvi i drugi zakon termodinamike
+
+FLUIDI
+• pritisak i hidrostatički pritisak
+• Arhimedov zakon
+• strujanje fluida i Bernulijeva jednačina
+
+ELEKTROSTATIKA
+• Kulonov zakon, električno polje i potencijal
+• kondenzatori i energija električnog polja
+
+JEDNOSMERNA STRUJA
+• napon, jačina struje i otpor
+• Omov zakon i vezivanje otpornika
+• Kirhofova pravila i električna snaga""".trimIndent())
+    }
+
+    private fun showStatistics() {
+        val p = getSharedPreferences(prefsName, MODE_PRIVATE)
+        val attempts = p.getInt("attempts", 0); val best = p.getInt("best", 0); val sum = p.getInt("sum", 0); val last = p.getInt("last", 0)
+        val avg = if (attempts == 0) 0 else (sum.toFloat() / attempts).toInt()
+        showInfo("Statistika", "Urađenih testova: $attempts\nPoslednji rezultat: $last%\nNajbolji rezultat: $best%\nProsečan rezultat: $avg%\n\nRezultati se čuvaju samo na ovom uređaju.")
+    }
+
+    private fun showOptions() {
+        AlertDialog.Builder(this).setTitle("Opcije").setItems(arrayOf("Resetuj statistiku", "O aplikaciji")) { _, which ->
+            if (which == 0) { getSharedPreferences(prefsName, MODE_PRIVATE).edit().clear().apply(); Toast.makeText(this, "Statistika je resetovana.", Toast.LENGTH_SHORT).show(); showHome() }
+            else AlertDialog.Builder(this).setTitle("Fizika 3").setMessage("Inicijalni test za obnavljanje gradiva drugog razreda.\n\nGimnazija Inđija").setPositiveButton("U redu", null).show()
+        }.setNegativeButton("Zatvori", null).show()
+    }
+
+    private fun showInfo(title: String, bodyText: String) {
+        val scroll = ScrollView(this).apply { isFillViewport = true; setBackgroundColor(bg) }
+        val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(22), dp(20), dp(26)) }; scroll.addView(root)
+        root.addView(text(title, 30, dark).apply { setTypeface(null, Typeface.BOLD) }); gap(root, 14)
+        val c = card(); c.addView(text(bodyText, 15, textColor)); root.addView(c, LinearLayout.LayoutParams(-1, -2)); gap(root, 18)
+        root.addView(primaryButton("←  Nazad na početnu").apply { setOnClickListener { showHome() } }, LinearLayout.LayoutParams(-1, dp(56))); setContentView(scroll)
+    }
+
+    private fun startTest() { questions = MixedQuestionBank.buildTest20(); current = 0; score = 0; checked = false; elapsed = 0L; startTime = SystemClock.elapsedRealtime(); running = true; buildTestUi(); showQuestion(); handler.post(timerRunnable) }
+
+    private fun buildTestUi() {
+        val page = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(bg) }
+        val scroll = ScrollView(this).apply { isFillViewport = true }
+        val content = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(18), dp(18), dp(18), dp(22)) }; scroll.addView(content); page.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
+        content.addView(text("Fizika 3", 25, dark).apply { setTypeface(null, Typeface.BOLD) }); content.addView(text("Inicijalni test • gradivo drugog razreda", 13, muted).apply { setPadding(0, dp(2), 0, dp(13)) })
+        val top = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        progressText = text("", 13, muted); scoreText = text("", 13, dark).apply { setTypeface(null, Typeface.BOLD) }; top.addView(progressText, LinearLayout.LayoutParams(0, dp(34), 1f)); top.addView(scoreText); content.addView(top)
+        progressBar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply { max = 20; progressTintList = ColorStateList.valueOf(primary) }; content.addView(progressBar, LinearLayout.LayoutParams(-1, dp(9))); gap(content, 14)
+        val qcard = card(); questionText = text("", 20, textColor).apply { setTypeface(null, Typeface.BOLD); setPadding(0, dp(4), 0, dp(10)) }; qcard.addView(questionText); options = RadioGroup(this).apply { orientation = RadioGroup.VERTICAL }; qcard.addView(options); content.addView(qcard, LinearLayout.LayoutParams(-1, -2))
+        explanation = text("", 15, textColor).apply { setPadding(dp(14), dp(12), dp(14), dp(12)); visibility = android.view.View.GONE }; content.addView(explanation, LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, dp(12), 0, 0) })
+        val actions = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, dp(15), 0, 0) }
+        checkButton = primaryButton("Proveri odgovor").apply { setOnClickListener { checkAnswer() } }; actions.addView(checkButton, LinearLayout.LayoutParams(0, dp(54), 1f))
+        nextButton = Button(this).apply { isAllCaps = false; text = "Sledeće pitanje"; textSize = 15f; setTextColor(dark); setTypeface(null, Typeface.BOLD); background = round(Color.WHITE, line, 20, 1); visibility = android.view.View.GONE; setOnClickListener { nextQuestion() } }; actions.addView(nextButton, LinearLayout.LayoutParams(0, dp(54), 1f).apply { setMargins(dp(10), 0, 0, 0) }); content.addView(actions)
+        val timerBar = LinearLayout(this).apply { gravity = Gravity.CENTER; setBackgroundColor(dark) }; timer = centered("Vreme 00:00", 14, Color.WHITE).apply { setTypeface(null, Typeface.BOLD) }; timerBar.addView(timer); page.addView(timerBar, LinearLayout.LayoutParams(-1, dp(50)))
+        setContentView(page)
     }
 
     private fun showQuestion() {
-        val q = questions[current]
-        checked = false
-        val percent = ((current + 1) * 100) / questions.size
-        progress.text = "Pitanje ${current + 1} / ${questions.size}     •     $percent%"
-        question.text = q.text
-        options.clearCheck()
-        optionButtons.forEachIndexed { i, button ->
-            val letter = ('A'.code + i).toChar()
-            button.text = "   $letter     ${q.options[i]}"
-            button.isEnabled = true
-        }
-        explanation.text = ""
-        explanation.visibility = View.GONE
-        next.visibility = View.GONE
+        if (current >= questions.size) { showResult(); return }
+        checked = false; val q = questions[current]; progressText.text = "Pitanje ${current + 1} od ${questions.size}"; scoreText.text = "Tačno: $score"; progressBar.progress = current + 1; questionText.text = q.text; options.removeAllViews()
+        q.options.forEachIndexed { index, option -> options.addView(optionButton(option, 1000 + index)) }
+        explanation.visibility = android.view.View.GONE; checkButton.isEnabled = true; checkButton.alpha = 1f; nextButton.visibility = android.view.View.GONE
     }
 
     private fun checkAnswer() {
         if (checked) return
-        val selectedId = options.checkedRadioButtonId
-        if (selectedId == -1) return
-        val selected = optionButtons.indexOfFirst { it.id == selectedId }
-        val q = questions[current]
-        val correct = selected == q.correct
-        if (correct) score++
-        checked = true
-        optionButtons.forEach { it.isEnabled = false }
-        explanation.text = if (correct) {
-            "✓  Tačan odgovor!\n\n${q.explanation}"
-        } else {
-            "✗  Netačan odgovor.\n\nTačan odgovor: ${q.options[q.correct]}\n\n${q.explanation}"
-        }
-        explanation.visibility = View.VISIBLE
-        next.text = if (current == questions.lastIndex) "Prikaži rezultat  →" else "Sledeće  →"
-        next.visibility = View.VISIBLE
+        val selected = options.checkedRadioButtonId; if (selected == -1) { Toast.makeText(this, "Izaberi jedan odgovor.", Toast.LENGTH_SHORT).show(); return }
+        checked = true; val chosen = selected - 1000; val q = questions[current]; val ok = chosen == q.correct; if (ok) score++
+        explanation.text = if (ok) "✓ Tačno!\n${q.explanation}" else "✗ Netačno. Tačan odgovor: ${q.options[q.correct]}\n${q.explanation}"
+        explanation.background = if (ok) round(Color.parseColor("#E7F7EF"), Color.parseColor("#69BE91"), 14, 1) else round(Color.parseColor("#FFF7E6"), accent, 14, 1)
+        explanation.visibility = android.view.View.VISIBLE; scoreText.text = "Tačno: $score"; for (i in 0 until options.childCount) options.getChildAt(i).isEnabled = false; checkButton.isEnabled = false; checkButton.alpha = .5f; nextButton.text = if (current == questions.lastIndex) "Rezultat" else "Sledeće pitanje"; nextButton.visibility = android.view.View.VISIBLE
     }
 
-    private fun goNext() {
-        if (!checked) return
-        if (current < questions.lastIndex) {
-            current++
-            showQuestion()
-        } else showResult()
-    }
+    private fun nextQuestion() { if (!checked) return; current++; if (current >= questions.size) showResult() else showQuestion() }
 
     private fun showResult() {
-        stopTimer()
-        progress.visibility = View.GONE
-        question.visibility = View.GONE
-        options.visibility = View.GONE
-        explanation.visibility = View.GONE
-        next.visibility = View.GONE
-        timer.visibility = View.GONE
-        val percent = score * 100 / questions.size
-        val grade = when {
-            percent >= 90 -> "Odlično!"
-            percent >= 75 -> "Vrlo dobro!"
-            percent >= 60 -> "Dobro!"
-            percent >= 45 -> "Solidno!"
-            else -> "Pokušaj ponovo!"
-        }
-        subtitle.text = "Inicijalni test"
-        result.text = "🏆\n\n$grade\n\n$percent%\n\n$score / ${questions.size} tačnih odgovora\n\n⏱ Vreme izrade: ${formatTime(elapsed)}"
-        result.visibility = View.VISIBLE
-        restart.visibility = View.VISIBLE
+        stopTimer(); val total = questions.size; val percent = if (total == 0) 0 else ((100f * score) / total).toInt(); saveStats(percent)
+        val scroll = ScrollView(this).apply { isFillViewport = true; setBackgroundColor(bg) }; val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL; setPadding(dp(20), dp(32), dp(20), dp(28)) }; scroll.addView(root)
+        root.addView(centered("REZULTAT", 13, primary).apply { setTypeface(null, Typeface.BOLD); letterSpacing = .12f }); gap(root, 10); root.addView(centered("$percent%", 54, dark).apply { setTypeface(null, Typeface.BOLD) }); root.addView(centered("$score / $total tačnih odgovora", 18, textColor)); root.addView(centered("Vreme izrade: ${formatTime(elapsed)}", 14, muted).apply { setPadding(0, dp(8), 0, 0) }); gap(root, 22)
+        root.addView(primaryButton("↻  Ponovi test").apply { setOnClickListener { startTest() } }, LinearLayout.LayoutParams(-1, dp(58))); gap(root, 12)
+        root.addView(Button(this).apply { isAllCaps = false; text = "←  Početna"; textSize = 16f; setTextColor(dark); setTypeface(null, Typeface.BOLD); background = round(Color.WHITE, line, 20, 1); setOnClickListener { showHome() } }, LinearLayout.LayoutParams(-1, dp(56))); setContentView(scroll)
     }
 
-    private fun showStart() {
-        stopTimer()
-        subtitle.text = "Inicijalni test"
-        hero.visibility = View.VISIBLE
-        intro.visibility = View.VISIBLE
-        start.visibility = View.VISIBLE
-        quote.visibility = View.VISIBLE
-        luck.visibility = View.VISIBLE
-        progress.visibility = View.GONE
-        question.visibility = View.GONE
-        options.visibility = View.GONE
-        explanation.visibility = View.GONE
-        next.visibility = View.GONE
-        result.visibility = View.GONE
-        restart.visibility = View.GONE
-        timer.visibility = View.GONE
-    }
-
-    private fun startTimer() {
-        handler.removeCallbacks(timerRunnable)
-        elapsed = 0L
-        startTime = SystemClock.elapsedRealtime()
-        running = true
-        timer.text = "⏱  Vreme: 00:00"
-        handler.post(timerRunnable)
-    }
-
-    private fun stopTimer() {
-        if (running) elapsed = SystemClock.elapsedRealtime() - startTime
-        running = false
-        handler.removeCallbacks(timerRunnable)
-    }
-
-    private fun formatTime(ms: Long): String {
-        val total = ms / 1000
-        return String.format("%02d:%02d", total / 60, total % 60)
-    }
-
-    override fun onDestroy() {
-        handler.removeCallbacks(timerRunnable)
-        super.onDestroy()
-    }
-
-    private fun cardBackground() = rounded(Color.WHITE, borderBlue, 20f, 1)
-
-    private fun answerBackground(): StateListDrawable {
-        val selected = rounded(lightBlue, blue, 18f, 2)
-        val normal = rounded(Color.WHITE, borderBlue, 18f, 1)
-        return StateListDrawable().apply {
-            addState(intArrayOf(android.R.attr.state_checked), selected)
-            addState(intArrayOf(), normal)
-        }
-    }
-
-    private fun rounded(fill: Int, stroke: Int, radiusDp: Float, strokeDp: Int): GradientDrawable = GradientDrawable().apply {
-        shape = GradientDrawable.RECTANGLE
-        setColor(fill)
-        cornerRadius = dp(radiusDp.toInt()).toFloat()
-        if (strokeDp > 0 && stroke != Color.TRANSPARENT) setStroke(dp(strokeDp), stroke)
-    }
-
-    private fun matchWrap(bottom: Int = 0) = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
-        bottomMargin = dp(bottom)
-    }
-
-    private fun matchHeight(height: Int, bottom: Int = 0) = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, height).apply {
-        bottomMargin = dp(bottom)
-    }
-
-    private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
+    private fun saveStats(percent: Int) { val p = getSharedPreferences(prefsName, MODE_PRIVATE); val attempts = p.getInt("attempts", 0) + 1; val best = maxOf(percent, p.getInt("best", 0)); val sum = p.getInt("sum", 0) + percent; p.edit().putInt("attempts", attempts).putInt("best", best).putInt("sum", sum).putInt("last", percent).apply() }
+    private fun stopTimer() { if (running) elapsed = SystemClock.elapsedRealtime() - startTime; running = false; handler.removeCallbacks(timerRunnable) }
+    private fun formatTime(ms: Long): String { val total = ms / 1000; return String.format("%02d:%02d", total / 60, total % 60) }
+    override fun onDestroy() { handler.removeCallbacks(timerRunnable); super.onDestroy() }
+    private fun primaryButton(label: String) = Button(this).apply { text = label; textSize = 17f; isAllCaps = false; setTextColor(Color.WHITE); setTypeface(null, Typeface.BOLD); background = round(primary, accent, 25, 1); elevation = dp(4).toFloat() }
+    private fun addTile(row: LinearLayout, icon: String, title: String, sub: String, click: () -> Unit) { val c = card().apply { gravity = Gravity.CENTER; isClickable = true; isFocusable = true; setOnClickListener { click() } }; c.addView(centered(icon, 27, primary).apply { setTypeface(null, Typeface.BOLD) }); c.addView(centered(title, 12, dark).apply { setTypeface(null, Typeface.BOLD); setPadding(0, dp(3), 0, 0) }); c.addView(centered(sub, 10, muted).apply { setPadding(0, dp(4), 0, 0) }); row.addView(c, LinearLayout.LayoutParams(0, dp(120), 1f).apply { setMargins(dp(4), 0, dp(4), 0) }) }
+    private fun card() = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16), dp(15), dp(16), dp(15)); background = round(Color.WHITE, line, 20, 1); elevation = dp(2).toFloat() }
+    private fun optionButton(value: String, idValue: Int) = RadioButton(this).apply { id = idValue; text = value; textSize = 16f; setTextColor(textColor); buttonTintList = ColorStateList.valueOf(primary); setPadding(dp(10), dp(10), dp(10), dp(10)); background = round(Color.parseColor("#F9FCFB"), line, 14, 1); layoutParams = LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, dp(5), 0, dp(5)) } }
+    private fun text(value: String, sp: Int, color: Int) = TextView(this).apply { text = value; textSize = sp.toFloat(); setTextColor(color); setLineSpacing(0f, 1.12f) }
+    private fun centered(value: String, sp: Int, color: Int) = text(value, sp, color).apply { gravity = Gravity.CENTER }
+    private fun gap(root: LinearLayout, h: Int) { root.addView(Space(this), LinearLayout.LayoutParams(1, dp(h))) }
+    private fun round(fill: Int, stroke: Int, radius: Int, strokeWidth: Int) = GradientDrawable().apply { shape = GradientDrawable.RECTANGLE; setColor(fill); cornerRadius = dp(radius).toFloat(); if (strokeWidth > 0) setStroke(dp(strokeWidth), stroke) }
+    private fun dp(v: Int): Int = (v * resources.displayMetrics.density + .5f).toInt()
 }
